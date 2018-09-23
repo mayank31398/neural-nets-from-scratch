@@ -58,7 +58,6 @@ def FitDensityEstimate1D(x, y, num_alphas, iterations, algorithm = "MLE"):
             
             class_conditional[i] = (Gaussian1D(x_, mu_, sigma_) * alpha_).sum(axis = 0)
             class_conditional[i] = np.prod(class_conditional[i], axis = 0, keepdims = True)
-            # class_conditional[i][np.isnan(class_conditional[i])] = 0
             class_conditional[i] = class_conditional[i].reshape(num_samples, 1)
             
             z += priors[i] * class_conditional[i]
@@ -92,7 +91,6 @@ def PredictDensityEstimate1D(x, mu, sigma, classes, priors, num_alphas):
 
         class_conditional[i] = (alpha_ * Gaussian1D(x_, mu_, sigma_)).sum(axis = 0)
         class_conditional[i] = np.prod(class_conditional[i], axis = 0, keepdims = True)
-        # class_conditional[i][np.isnan(class_conditional[i])] = 0
         class_conditional[i] = class_conditional[i].reshape(num_samples, 1)
         
         z += priors[i] * class_conditional[i]

@@ -320,7 +320,7 @@ class LogisticRegression:
     def __init__(self, Regularize = False):
         self.regularize = Regularize
 
-    def Fit(self, x, y, learning_rate = 0.1, iterations = 10000):
+    def Fit(self, x, y, learning_rate = 0.1, iterations = 10000, alpha = 0.1):
         classes = list(set(y))
         num_samples = x.shape[0]
         num_features = x.shape[1]
@@ -337,11 +337,11 @@ class LogisticRegression:
             for j in range(iterations):
                 h = Sigmoid(np.matmul(W, x_) + b)
 
-                if(self.regularize):
-                    W_grad = 
-                else:
-                    W_grad = ((h - y_) * x_).sum(axis = 1) / num_samples
-                    b_grad = (h - y_).sum(axis = 1) / num_samples
+                if(not self.regularize):
+                    alpha = 0
+
+                W_grad = ((h - y_) * x_).sum(axis = 1) / num_samples + 2 * alpha * W
+                b_grad = (h - y_).sum(axis = 1) / num_samples
 
                 W -= learning_rate * W_grad
                 b -= learning_rate * b_grad

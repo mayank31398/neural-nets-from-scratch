@@ -34,7 +34,6 @@ def VisualizePCA(x_train, P = [784, 700, 600, 500, 400, 300, 200, 100, 75, 50, 2
     
         plt.subplot(q, 3, i)
         plt.title("p = " + str(p))
-#         plt.imshow(x_train_.reshape(28, 28), cmap = "Greys_r")
         Z = np.matmul(x_train_, np.matmul(np.linalg.inv(np.matmul(vecs.T, vecs)), vecs.T))
         plt.imshow(Z.reshape(28, 28), cmap = "Greys_r")
 
@@ -63,25 +62,9 @@ def PCA(x_train, x_test, threshold = 0.95, p = 0):
                 p = i + 1
                 break
     
-    vals = values[:p]
     vecs = vectors[:, :p]
     
     x_train_ = np.matmul(x_train, vecs)
     x_test_ = np.matmul(x_test, vecs)
-    
-    ###########################################################################################
-#     This is purely to see the images
-    
-#     plot = 0
-    
-#     plt.subplot(1, 2, 1)
-#     plt.title("p = " + str(784))
-#     plt.imshow(x_train[plot].reshape(28, 28), cmap = "Greys_r")
-#     Z = np.matmul(x_train_[plot, :], np.matmul(np.linalg.inv(np.matmul(vecs.T, vecs)), vecs.T))
-    
-#     plt.subplot(1, 2, 2)
-#     plt.title("p = " + str(p))
-#     plt.imshow(Z.reshape(28, 28), cmap = "Greys_r")
-    ###########################################################################################
     
     return x_train_, x_test_, p

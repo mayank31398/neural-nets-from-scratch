@@ -1,10 +1,10 @@
 import numpy as np
+import matplotlib.pyplot as plt
 from Modules.Density import FitDensityEstimate1D, PredictDensityEstimate1D
 from Modules.Estimators import EMdD
 from Modules.Metrics import Accuracy, roc_curve
 from Modules.Distances import Distance
-import matplotlib.pyplot as plt
-from Modules.Activations import Sigmoid
+from Modules.Activations import Sigmoid, Softmax
 
 class NaiveBayesClassifier:
     training_accuracy = 0
@@ -19,6 +19,13 @@ class NaiveBayesClassifier:
         self.algorithm = algorithm
     
     def Fit(self, x, y, num_alphas, iterations = 100, roc_plot = False, label = None):
+        """
+        x = x_train, y = y_train\n
+        iterations = 100, roc_plot = False, num_alphas = number of Gaussians to be used for a given class for a given feature 
+        (dictionary of class to array of natural numbers with array size = num_features)\n
+        label = class which you want roc for (default is None). If label == None, all classes' ROC is plotted.\n
+        Returns predictions.
+        """
         classes = list(set(y))
         
         num_samples = x.shape[0]
@@ -53,6 +60,10 @@ class NaiveBayesClassifier:
         return predictions
     
     def Predict(self, x):
+        """
+        x = x_test\n
+        Returns predictions.
+        """
         classes = self.classes
         
         num_samples = x.shape[0]
@@ -79,6 +90,12 @@ class BayesClassifier:
         self.algorithm = algorithm
     
     def Fit(self, x, y, num_alphas, iterations = 100):
+        """
+        x = x_train, y = y_train\n
+        iterations = 100, num_alphas = number of Gaussians to be used for a given class (dictionary of class to natural numbers.)\n
+        label = class which you want roc for (default is None). If label == None, all classes' ROC is plotted.\n
+        Returns predictions.
+        """
         epsilon = 1e-10
         
         classes = list(set(y))
@@ -137,6 +154,10 @@ class BayesClassifier:
         return predictions
     
     def Predict(self, x):
+        """
+        x = x_test\n
+        Returns predictions.
+        """
         class_conditional = {}
         classes = self.classes
         priors = self.priors
@@ -317,8 +338,8 @@ class LogisticRegression:
     weights = None
     regularize = None
 
-    def __init__(self, Regularize = False):
-        self.regularize = Regularize
+    def __init__(self, regularize = False):
+        self.regularize = regularize
 
     def Fit(self, x, y, learning_rate = 0.1, iterations = 10000, alpha = 0.1):
         classes = list(set(y))
@@ -331,14 +352,14 @@ class LogisticRegression:
         for i in classes:
             y_ = (y == i).astype(int)
 
+            if(not self.regularize):
+                alpha = 0
+            
             W = np.random.randn(1, num_features)
             b = np.random.randn(1)
 
             for j in range(iterations):
                 h = Sigmoid(np.matmul(W, x_) + b)
-
-                if(not self.regularize):
-                    alpha = 0
 
                 W_grad = ((h - y_) * x_).sum(axis = 1) / num_samples + 2 * alpha * W
                 b_grad = (h - y_).sum(axis = 1) / num_samples
@@ -396,4 +417,107 @@ class LogisticRegression:
         classes = np.array(classes)
         predictions = classes[q]
         
+        return predictions
+
+class SoftmaxRegression:
+    classes = None
+    weights = None
+
+    def Fit(self, x, y, learning_rate = 0.1, iterations = 10000):
+        classes = list(set(y))
+        num_samples = x.shape[0]
+        x = np.concatenate([np.ones([num_samples, 1]), x], axis = 1)
+        num_features = x.shape[1]
+        num_classes = len(classes)
+        x_ = x.T
+
+        y_ = np.zeros([num_classes, num_samples])
+        for i in range(num_classes):
+            temp = y == classes[i]
+            y_[i, temp] = 1
+        
+        weights = {}
+        W = np.random.randn(num_classes, num_features)
+        
+        for i in range(iterations):
+            temp = np.exp(np.matmul(W, x_))
+            z = temp.sum(axis = 0).reshape(1, num_samples, 1)
+
+            grad1 = temp ** 2
+            grad1 = grad1.T.reshape(1, num_samples, num_classes)
+            grad1 = grad1 * x_.reshape(num_features, num_samples, 1) / z ** 2
+
+            grad2 = y_ * temp
+            grad2 = grad2.T.reshape(1, num_samples, num_classes)
+            grad2 = grad2 * x_.reshape(num_features, num_samples, 1) / z
+
+            W_grad = (grad1 - grad2).sum(axis = 1).T / num_samples
+            W -= learning_rate * W_grad
+
+        weights["W"] = W
+        self.weights = weights
+        self.classes = classes
+
+        temp = Softmax(np.matmul(W, x_))
+        temp = np.argmax(temp, axis = 0)
+        classes = np.array(classes)
+        predictions = classes[temp]
+
+        return predictions
+
+    def Predict(self, x):
+        classes = self.classes
+        weights = self.weights
+        num_samples = x.shape[0]
+        x = np.concatenate([np.ones([num_samples, 1]), x], axis = 1)
+        x_ = x.T
+
+        W = weights["W"]
+
+        temp = Softmax(np.matmul(W, x_))
+        temp = np.argmax(temp, axis = 0)
+        classes = np.array(classes)
+        predictions = classes[temp]
+
+        return predictions
+
+class LinearRegression:
+    regularize = None
+    weights = None
+    training_error = None
+
+    def __init__(self, regularize = False):
+        self.regularize = regularize
+    
+    def Fit(self, x, y, alpha = 0.1):
+        num_samples = x.shape[0]
+        x = np.concatenate([np.ones([num_samples, 1]), x], axis = 1)
+        num_features = x.shape[1]
+        x_ = x.T
+        y_ = y.reshape(1, num_samples)
+
+        if(not self.regularize):
+            alpha = 0
+        
+        weights = {}
+        W = np.matmul(y_, np.matmul(x_.T, np.linalg.inv(np.matmul(x_, x_.T) + alpha * np.identity(num_features))))
+        
+        weights["W"] = W
+
+        predictions = np.matmul(W, x_)
+        self.training_error = ((predictions - y) ** 2).sum()
+        self.weights = weights
+        
+        return predictions.reshape(num_samples)
+    
+    def Predict(self, x):
+        weights = self.weights
+
+        num_samples = x.shape[0]
+        x = np.concatenate([np.ones([num_samples, 1]), x], axis = 1)
+        x_ = x.T
+
+        W = weights["W"]
+        predictions = np.matmul(W, x_)
+
         return predictions

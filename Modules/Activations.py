@@ -8,3 +8,7 @@ def Tanh(x):
 
 def ReLU(x):
     return np.max(0, x)
+
+def Softmax(x, axis = 0):
+    t = np.exp(x)
+    return t / t.sum(axis = axis, keepdims = True)

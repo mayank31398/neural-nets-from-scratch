@@ -2,8 +2,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 def VisualizePCA(x_train, P = [784, 700, 600, 500, 400, 300, 200, 100, 75, 50, 20, 10], index = 0):
-    d = x_train.shape[1]
-    
     means = x_train.mean(axis = 0, keepdims = True)
     x_ = x_train - means
     S = np.matmul(x_.T, x_)

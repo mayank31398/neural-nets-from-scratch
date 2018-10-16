@@ -521,3 +521,125 @@ class LinearRegression:
         predictions = np.matmul(W, x_)
 
         return predictions
+
+class Perceptron:
+    weights = None
+    classes = None
+
+    def Fit(self, x, y, epochs = 10):
+        classes = list(set(y))
+        num_samples = x.shape[0]
+        x = np.concatenate([np.ones([num_samples, 1]), x], axis = 1)
+        num_features = x.shape[1]
+        
+        if(len(classes) == 2):
+            W = np.zeros([1, num_features])
+            for i in range(epochs):
+                for j in range(num_samples):
+                    x_ = x[j, :].reshape(num_features, 1)
+                    y_ = y[j]
+
+                    temp = np.matmul(W, x_)
+                    if(y_ == classes[0] and temp >= 0):
+                        W -= x_.T
+                    elif(y_ == classes[1] and temp <= 0):
+                        W += x_.T
+            
+            temp = np.matmul(W, x.T).reshape(num_samples)
+            predictions = np.zeros([num_samples])
+            predictions[temp < 0] = classes[0]
+            predictions[temp > 0] = classes[1]
+
+            self.weights = W
+        else:
+            weights = {}
+            temp_ = np.zeros([num_samples]) - 1
+            for i in range(len(classes)):
+                W = np.zeros([1, num_features])
+                for j in range(epochs):
+                    for k in range(num_samples):
+                        x_ = x[k, :].reshape(num_features, 1)
+                        y_ = y[k]
+
+                        temp = np.matmul(W, x_)
+                        if(y_ == classes[i] and temp >= 0):
+                            W -= x_.T
+                        elif(y_ != classes[i] and temp <= 0):
+                            W += x_.T
+                
+                weights[classes[i]] = W
+                
+                temp = np.matmul(W, x.T).reshape(num_samples)
+                temp_[temp < 0] = i
+            
+            self.weights = weights
+            
+            predictions = []
+            temp_ = temp_.astype(int)
+            for i in range(num_samples):
+                if(temp_[i] != -1):
+                    predictions.append(classes[temp_[i]])
+                else:
+                    predictions.append("")
+            predictions = np.array(predictions)
+            
+        self.classes = classes
+        
+        return predictions
+    
+    def Predict(self, x):
+        classes = self.classes
+        num_samples = x.shape[0]
+        x = np.concatenate([np.ones([num_samples, 1]), x], axis = 1)
+
+        if(len(classes) == 2):
+            W = self.weights
+            temp = np.matmul(W, x.T).reshape(num_samples)
+            predictions = np.zeros([num_samples])
+            predictions[temp < 0] = classes[0]
+            predictions[temp > 0] = classes[1]
+        else:
+            temp_ = np.zeros([num_samples]) - 1
+            for i in range(len(classes)):
+                W = self.weights[i]
+                temp = np.matmul(W, x.T).reshape(num_samples)
+                temp_[temp < 0] = i
+            
+                predictions = []
+                temp_ = temp_.astype(int)
+                for i in range(num_samples):
+                    if(temp_[i] != -1):
+                        predictions.append(classes[temp_[i]])
+                    else:
+                        predictions.append("")
+                predictions = np.array(predictions)
+        
+        return predictions
+
+class FLDA:
+    weights = None
+    classes = None
+
+    def Fit(self, x, y):
+        classes = list(set(y))
+        num_samples = x.shape[0]
+        x = np.concatenate([np.ones([num_samples, 1]), x], axis = 1)
+        x_ = x.T
+
+        self.weights = {}
+        for i in classes:
+            temp = y == i
+
+            x1 = x_[:, temp]
+            x0 = x_[:, 1 - temp]
+
+            M1 = x1.sum(axis = 1) / x1.shape[0]
+            M0 = x0.sum(axis = 0) / x0.shape[0]
+
+            x1 -= M1
+            x0 -= M0
+
+            S = np.matmul(x0, x0.T) + np.matmul(x1, x1.T)
+            W = np.matmul(np.linalg.inv(S), M1 - M0)
+
+            self.weights[i] = W

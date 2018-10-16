@@ -46,6 +46,14 @@ def F1score(predictions, y):
     
     return f1_score
 
+def UnclassifiedPoints(predictions):
+    count = 0
+    for i in predictions:
+        if(i == ""):
+            count += 1
+    
+    return count
+
 def roc_curve(y_true, y_score, pos_label=None, sample_weight=None,
               drop_intermediate=True):
     fps, tps, thresholds = _binary_clf_curve(

@@ -66,5 +66,3 @@ def PCA(x_train, x_test, threshold = 0.95, p = 0):
     x_test_ = np.matmul(x_test, vecs)
     
     return x_train_, x_test_, p
-
-from sklearn.svm import SVC

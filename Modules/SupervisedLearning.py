@@ -393,25 +393,6 @@ class LogisticRegression:
                 concat_ = True
             else:
                 q = np.concatenate([q, temp_.reshape(num_samples, 1)], axis = 1)
-        
-        # thresholds_array = np.linspace(0, 1, num = 10)
-        # pl = np.zeros([1000, 4])
-        # index = 0
-        # for i in thresholds_array:
-        #     for j in thresholds_array:
-        #         for k in thresholds_array:
-        #             q_ = np.array([i, j, k]) * q
-                    
-        #             q_ = np.argmax(q_, axis = 1)
-        #             classes = np.array(classes)
-        #             q_ = classes[q_]
-
-        #             pl[index, :] = np.array([i, j, k, Accuracy(q_, y)])
-        #             index += 1
-
-        # fig = plt.figure()
-        # ax = fig.add_subplot(111, projection = "3d")
-        # ax.scatter(pl[:, 0], pl[:, 1], pl[:, 2], c = pl[:, 3], cmap = "hot")
 
         q = np.argmax(q, axis = 1)
         classes = np.array(classes)

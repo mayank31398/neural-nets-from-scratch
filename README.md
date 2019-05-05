@@ -4,6 +4,8 @@
 
 I thank Professor Prathosh AP (IIT Delhi) for providing the medical, railway datasets and the river datasets.
 
+The report can be found [here](Report.pdf).
+
 #### The learning algorithms implemented are:
 ```
 Naive Bayes classifier
